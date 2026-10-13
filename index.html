@@ -3,120 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planificador Semanal Dinámico</title>
+  <title>Planificador de Actividades Relevantes</title>
+  
+  <!-- Configuración PWA y Estilos -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="./css/styles.css">
+  
+  <!-- Librerías Externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    :root {
-      --primary: #2563eb; --primary-hover: #1d4ed8;
-      --success: #16a34a; --success-hover: #15803d;
-      --warning: #ea580c; --warning-hover: #c2410c;
-      --danger: #dc2626; --danger-hover: #b91c1c;
-      --bg: #f8fafc; --card-bg: #ffffff;
-      --text: #1e293b; --border: #e2e8f0; --secondary: #64748b;
-    }
-
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-    .container { display: flex; gap: 20px; width: 100%; max-width: 1100px; flex-wrap: wrap; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    
-    .calendar-card { flex: 1 1 350px; }
-    .details-card { flex: 2 1 450px; display: flex; flex-direction: column; }
-    .states-card { flex: 1 1 100%; margin-top: 10px; }
-
-    .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: background-color 0.2s; color: white; display: inline-flex; align-items: center; gap: 5px; }
-    .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--success); } .btn-success:hover { background: var(--success-hover); }
-    .btn-warning { background: var(--warning); } .btn-warning:hover { background: var(--warning-hover); }
-    .btn-danger { background: var(--danger); } .btn-danger:hover { background: var(--danger-hover); }
-    .btn-secondary { background: #e2e8f0; color: #334155; } .btn-secondary:hover { background: #cbd5e1; }
-    
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; transition: all 0.2s; padding: 0 4px; }
-    .btn-icon:hover { opacity: 1; transform: scale(1.1); }
-    
-    .actions-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .weekdays, .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-    .weekdays div { font-weight: bold; color: var(--secondary); font-size: 0.85rem; padding: 8px 0; }
-    
-    /* Estilos base para los días */
-    .day { padding: 12px 0; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; position: relative; }
-    .day.empty { cursor: default; }
-    .has-activities::after { content: ''; display: block; width: 5px; height: 5px; background-color: #ef4444; border-radius: 50%; margin: 3px auto 0; }
-    
-    /* Efecto hover refinado */
-    .day:hover:not(.empty) { border-color: var(--primary); transform: scale(1.05); z-index: 10; box-shadow: 0 4px 8px rgba(37,99,235,0.2); }
-    .day.selected { background-color: var(--primary) !important; color: white !important; font-weight: bold; transform: scale(1.05); z-index: 10; border-color: var(--primary); }
-    .day.selected.has-activities::after { background-color: white; }
-
-    /* COLORES POR SEMANA (Tonos pastel muy suaves) */
-    .week-0 { background-color: rgba(239, 246, 255, 0.7); } 
-    .week-1 { background-color: rgba(240, 253, 244, 0.7); } 
-    .week-2 { background-color: rgba(254, 252, 232, 0.7); } 
-    .week-3 { background-color: rgba(250, 245, 255, 0.7); } 
-    .week-4 { background-color: rgba(255, 247, 237, 0.7); } 
-    .week-5 { background-color: rgba(253, 242, 248, 0.7); } 
-
-    /* RESALTE DE LA SEMANA SELECCIONADA */
-    .week-0.selected-week:not(.selected) { background-color: rgba(219, 234, 254, 0.9); border-color: #bfdbfe; }
-    .week-1.selected-week:not(.selected) { background-color: rgba(220, 252, 231, 0.9); border-color: #bbf7d0; }
-    .week-2.selected-week:not(.selected) { background-color: rgba(254, 249, 195, 0.9); border-color: #fef08a; }
-    .week-3.selected-week:not(.selected) { background-color: rgba(243, 232, 255, 0.9); border-color: #e9d5ff; }
-    .week-4.selected-week:not(.selected) { background-color: rgba(255, 237, 213, 0.9); border-color: #fed7aa; }
-    .week-5.selected-week:not(.selected) { background-color: rgba(252, 231, 243, 0.9); border-color: #fbcfe8; }
-
-    .details-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
-    .details-header h3 { margin: 0 0 8px 0; }
-    .day-counter { background-color: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
-    .filters-container, .summary-filters { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
-    .form-control { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; flex: 1; min-width: 120px; font-family: inherit;}
-    
-    .summary-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px; gap: 15px; }
-    .summary-header h3 { margin: 0; }
-
-    .activity-list { display: flex; flex-direction: column; gap: 15px; overflow-y: auto; max-height: 400px; padding-right: 5px; }
-    .activity-item { border: 1px solid var(--border); border-radius: 8px; padding: 15px; background-color: #f8fafc; transition: border-color 0.2s; }
-    .activity-item:hover { border-color: #cbd5e1; }
-    .activity-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
-    .activity-header h4 { margin: 0; color: var(--primary); flex: 1; }
-    .activity-actions-wrap { display: flex; align-items: center; gap: 8px; }
-    .activity-time { font-weight: bold; color: var(--secondary); font-size: 0.9rem; background: #e2e8f0; padding: 2px 8px; border-radius: 12px;}
-    .activity-body p { margin: 5px 0; font-size: 0.95rem; }
-
-    .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 20px; }
-    .states-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
-    .state-item { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; }
-    .state-item.active { background: #dbeafe; border: 1px solid #bfdbfe; }
-    .state-count { background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-    
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
-    .modal-header h3 { margin: 0 0 20px 0; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .form-group { display: flex; flex-direction: column; } .form-group.full { grid-column: 1 / -1; }
-    .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: var(--secondary); }
-    .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-  </style>
 </head>
 <body>
 
+<!-- ENCABEZADO INSTITUCIONAL -->
+<header class="institutional-header">
+  <div class="logo-container">
+    <img src="img/logo-ministerio.png" alt="Logo Ministerio" class="logo-img">
+    <img src="img/logo-pnb.png" alt="Logo Policía Nacional Bolivariana" class="logo-img">
+    <img src="img/logo-policia-comunal.png" alt="Logo Policía Comunal" class="logo-img">
+  </div>
+  <h1 class="main-title">Planificador de Actividades Relevantes</h1>
+</header>
+
 <div class="container">
+  <!-- Tarjeta 1: Calendario -->
   <div class="card calendar-card">
     <div class="header">
       <button class="btn btn-primary" id="prev-month">&lt;</button>
       <h2 id="month-year" style="margin: 0; font-size: 1.2rem;"></h2>
       <button class="btn btn-primary" id="next-month">&gt;</button>
     </div>
-    <div class="weekdays"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+    <div class="weekdays">
+      <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+    </div>
     <div class="days" id="days-container"></div>
   </div>
 
+  <!-- Tarjeta 2: Detalle de Actividades del Día -->
   <div class="card details-card">
     <div class="details-header">
       <div>
@@ -125,7 +48,7 @@
       </div>
       <div class="actions-bar">
         <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar</button>
-        <button onclick="document.getElementById('excel-file').click()" class="btn btn-warning" title="Cargar desde Excel">📤 Importar</button>
+        <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar</button>
         <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
         <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar</button>
         <button id="btn-open-modal" class="btn btn-primary">+ Nueva Actividad</button>
@@ -136,14 +59,16 @@
       <select id="filter-estado" class="form-control"><option value="">Todos los Estados</option></select>
       <input type="text" id="filter-parroquia" class="form-control" placeholder="Buscar parroquia...">
     </div>
-    <div id="activity-list" class="activity-list"><p style="color: var(--secondary);">Haz clic en un día para ver la planificación detallada.</p></div>
+    <div id="activity-list" class="activity-list">
+      <p style="color: var(--secondary);">Haz clic en un día para ver la planificación detallada.</p>
+    </div>
   </div>
 
+  <!-- Tarjeta 3: Resumen y Gráfico por Estado -->
   <div class="card states-card">
     <div class="summary-header">
       <h3>Resumen de Actividades por Estado</h3>
       
-      <!-- Controles de Filtro para el Gráfico -->
       <div class="summary-filters">
         <select id="summary-filter-type" class="form-control" style="flex: unset; width: auto;">
           <option value="all">Todo el tiempo</option>
@@ -171,6 +96,7 @@
   </div>
 </div>
 
+<!-- Modal Formulario de Registro / Edición -->
 <div id="modal-form" class="modal-overlay" style="display: none;">
   <div class="modal-content">
     <div class="modal-header"><h3 id="modal-title">Registrar Nueva Actividad</h3></div>
@@ -193,379 +119,18 @@
   </div>
 </div>
 
+<!-- Script Principal como Módulo ES6 -->
+<script type="module" src="./js/app.js"></script>
+
+<!-- Registro del Service Worker para la PWA -->
 <script>
-  const listaEstados = ["Amazonas", "Anzoátegui", "Apure", "Aragua", "Barinas", "Bolívar", "Carabobo", "Cojedes", "Delta Amacuro", "Distrito Capital", "Falcón", "Guárico", "Lara", "Mérida", "Miranda", "Monagas", "Nueva Esparta", "Portuguesa", "Sucre", "Táchira", "Trujillo", "La Guaira", "Yaracuy", "Zulia"];
-  
-  let activities = {};
-  let currentDate = new Date(); 
-  let selectedDateStr = null;
-  let currentDayActivities = [];
-  let editingDate = null;
-  let editingIndex = null;
-  
-  let chartInstance = null;
-
-  const filterEstado = document.getElementById('filter-estado');
-  const inputEstado = document.getElementById('input-estado');
-  listaEstados.forEach(e => { filterEstado.add(new Option(e, e)); inputEstado.add(new Option(e, e)); });
-
-  // === LOCAL STORAGE ===
-  const STORAGE_KEY = 'planificacion_pnb_data';
-  function saveToLocalStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(activities)); }
-  function loadFromLocalStorage() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) { 
-      try { activities = JSON.parse(stored); } catch (e) { activities = {}; } 
-    }
-  }
-
-  document.getElementById('btn-clear-data').addEventListener('click', () => {
-    if(confirm("¿Estás seguro de borrar TODAS las actividades? Esto no se puede deshacer.")) {
-      activities = {}; saveToLocalStorage(); renderCalendar(); renderStatesSummary();
-      document.getElementById('activity-list').innerHTML = '<p style="color: var(--secondary);">Haz clic en un día para ver la planificación.</p>';
-      document.getElementById('filters-container').style.display = 'none'; document.getElementById('day-counter').style.display = 'none';
-      document.getElementById('selected-date-title').textContent = "Selecciona una fecha"; selectedDateStr = null;
-    }
-  });
-
-  // === EXCEL ===
-  document.getElementById('btn-export').addEventListener('click', () => {
-    let flatData = [];
-    Object.keys(activities).forEach(date => {
-      activities[date].forEach(act => {
-        flatData.push({ Fecha: date, Hora: act.hora, Estado: act.estado, Parroquia: act.parroquia, Lugar: act.lugar, Actividad: act.actividad, Descripcion: act.descripcion, Responsable: act.responsable });
-      });
-    });
-    if(flatData.length === 0) { alert("No hay actividades para exportar."); return; }
-    const ws = XLSX.utils.json_to_sheet(flatData); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Planificacion"); XLSX.writeFile(wb, "Planificacion_Policial.xlsx");
-  });
-
-  document.getElementById('excel-file').addEventListener('change', (event) => {
-    const file = event.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, {type: 'array'});
-      const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      activities = {};
-      json.forEach(row => {
-        const date = row.Fecha; if(!date) return; 
-        if(!activities[date]) activities[date] = [];
-        activities[date].push({ hora: row.Hora || "", estado: row.Estado || "", parroquia: row.Parroquia || "", lugar: row.Lugar || "", actividad: row.Actividad || "", descripcion: row.Descripcion || "", responsable: row.Responsable || "" });
-      });
-      saveToLocalStorage(); alert("Datos importados exitosamente."); event.target.value = ''; 
-      renderCalendar(); renderStatesSummary(); reloadSelectedDate();
-    };
-    reader.readAsArrayBuffer(file);
-  });
-
-  // === RENDERIZADO CALENDARIO ===
-  function renderCalendar() {
-    const year = currentDate.getFullYear(), month = currentDate.getMonth();
-    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    document.getElementById('month-year').textContent = `${monthNames[month]} ${year}`;
-    
-    const daysContainer = document.getElementById('days-container'); daysContainer.innerHTML = '';
-    const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; 
-    const totalDays = new Date(year, month + 1, 0).getDate();
-
-    let cellCount = 0; 
-
-    // Días vacíos previos al inicio del mes
-    for (let i = 0; i < firstDayIndex; i++) {
-      let d = document.createElement('div'); 
-      d.className = 'day empty'; 
-      let weekIndex = Math.floor(cellCount / 7);
-      d.classList.add(`week-${weekIndex}`);
-      daysContainer.appendChild(d);
-      cellCount++;
-    }
-
-    // Días reales del mes
-    for (let day = 1; day <= totalDays; day++) {
-      const dayDiv = document.createElement('div'); 
-      dayDiv.className = 'day'; 
-      dayDiv.textContent = day;
-      
-      let weekIndex = Math.floor(cellCount / 7);
-      const currentWeekClass = `week-${weekIndex}`;
-      dayDiv.classList.add(currentWeekClass);
-      cellCount++;
-
-      const dateKey = `${String(day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
-
-      if (activities[dateKey] && activities[dateKey].length > 0) dayDiv.classList.add('has-activities');
-      if (dateKey === selectedDateStr) dayDiv.classList.add('selected');
-
-      dayDiv.addEventListener('click', () => {
-        document.querySelectorAll('.day').forEach(d => { d.classList.remove('selected', 'selected-week'); });
-        
-        dayDiv.classList.add('selected'); 
-        selectedDateStr = dateKey;
-        
-        document.querySelectorAll(`.day.${currentWeekClass}`).forEach(d => { d.classList.add('selected-week'); });
-
-        document.getElementById('filter-estado').value = ""; document.getElementById('filter-parroquia').value = "";
-        loadActivitiesForDate(dateKey, day, monthNames[month], year);
-      });
-      
-      daysContainer.appendChild(dayDiv);
-    }
-    
-    const selectedElement = document.querySelector('.day.selected');
-    if(selectedElement) {
-       const weekClass = Array.from(selectedElement.classList).find(c => c.startsWith('week-'));
-       if(weekClass) { document.querySelectorAll(`.day.${weekClass}`).forEach(d => d.classList.add('selected-week')); }
-    }
-  }
-
-  function loadActivitiesForDate(dateKey, day, monthName, year) {
-    document.getElementById('selected-date-title').textContent = `${day} de ${monthName} de ${year}`;
-    currentDayActivities = activities[dateKey] || [];
-    const filters = document.getElementById('filters-container'), counter = document.getElementById('day-counter');
-    
-    if (currentDayActivities.length === 0) {
-      filters.style.display = 'none'; counter.style.display = 'none';
-      document.getElementById('activity-list').innerHTML = '<p style="color: var(--secondary);">No hay actividades programadas para esta fecha.</p>';
-      return;
-    }
-    filters.style.display = 'flex'; counter.style.display = 'block';
-    renderFilteredActivities();
-  }
-
-  function reloadSelectedDate() {
-    if(!selectedDateStr) return;
-    const [day, month, year] = selectedDateStr.split('/');
-    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    loadActivitiesForDate(selectedDateStr, parseInt(day), monthNames[parseInt(month)-1], year);
-  }
-
-  function renderFilteredActivities() {
-    const eFilter = document.getElementById('filter-estado').value, pFilter = document.getElementById('filter-parroquia').value.toLowerCase();
-    
-    let actsWithIndex = currentDayActivities.map((act, idx) => ({ ...act, originalIndex: idx }));
-    let filtered = actsWithIndex.filter(act => (eFilter === "" || act.estado === eFilter) && (pFilter === "" || act.parroquia.toLowerCase().includes(pFilter)));
-    
-    document.getElementById('day-counter').textContent = filtered.length === 1 ? '1 actividad' : `${filtered.length} actividades`;
-    const list = document.getElementById('activity-list'); list.innerHTML = '';
-    
-    if (filtered.length === 0) { list.innerHTML = '<p style="color: var(--secondary);">Ninguna actividad coincide con los filtros.</p>'; return; }
-
-    filtered.sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
-    filtered.forEach(act => {
-      const item = document.createElement('div'); item.className = 'activity-item';
-      item.innerHTML = `
-        <div class="activity-header">
-          <h4>${act.actividad}</h4>
-          <div class="activity-actions-wrap">
-            <span class="activity-time">⏱ ${act.hora}</span>
-            <button class="btn-icon" onclick="openEditModal('${selectedDateStr}', ${act.originalIndex})" title="Editar">✏️</button>
-            <button class="btn-icon" onclick="deleteActivity('${selectedDateStr}', ${act.originalIndex})" style="color:var(--danger)" title="Eliminar">🗑️</button>
-          </div>
-        </div>
-        <div class="activity-body">
-          <p><strong>Ubicación:</strong> ${act.estado} > ${act.parroquia} (${act.lugar})</p>
-          <p><strong>Descripción:</strong> ${act.descripcion}</p>
-          <p><strong>Responsable:</strong> ${act.responsable}</p>
-        </div>`;
-      list.appendChild(item);
-    });
-  }
-
-  document.getElementById('filter-estado').addEventListener('change', renderFilteredActivities);
-  document.getElementById('filter-parroquia').addEventListener('input', renderFilteredActivities);
-
-  // === LÓGICA DE FILTROS PARA EL RESUMEN ===
-  document.getElementById('summary-filter-type').addEventListener('change', function() {
-    const val = this.value;
-    document.getElementById('summary-date-day').style.display = val === 'day' ? 'block' : 'none';
-    document.getElementById('summary-date-month').style.display = val === 'month' ? 'block' : 'none';
-    document.getElementById('summary-date-range').style.display = val === 'range' ? 'flex' : 'none';
-    renderStatesSummary();
-  });
-
-  ['summary-date-day', 'summary-date-month', 'summary-date-start', 'summary-date-end'].forEach(id => {
-    document.getElementById(id).addEventListener('change', renderStatesSummary);
-  });
-
-  // === RENDERIZADO DE ESTADOS Y GRÁFICO (CON FILTROS) ===
-  function renderStatesSummary() {
-    const filterType = document.getElementById('summary-filter-type').value;
-    const filterDay = document.getElementById('summary-date-day').value; // Formato YYYY-MM-DD
-    const filterMonth = document.getElementById('summary-date-month').value; // Formato YYYY-MM
-    const filterStart = document.getElementById('summary-date-start').value;
-    const filterEnd = document.getElementById('summary-date-end').value;
-
-    const counts = {}; listaEstados.forEach(e => counts[e] = 0);
-    
-    Object.entries(activities).forEach(([dateStr, dayArr]) => {
-      // dateStr viene como DD/MM/YYYY
-      const [d, m, y] = dateStr.split('/');
-      const isoDate = `${y}-${m}-${d}`; 
-      const isoMonth = `${y}-${m}`;
-      const dateObj = new Date(y, m - 1, d); // Mes de 0 a 11
-
-      let include = true;
-
-      if (filterType === 'day' && filterDay) {
-        if (isoDate !== filterDay) include = false;
-      } else if (filterType === 'month' && filterMonth) {
-        if (isoMonth !== filterMonth) include = false;
-      } else if (filterType === 'range' && (filterStart || filterEnd)) {
-        // Añadimos T00:00:00 y T23:59:59 para comparar correctamente las fechas en la zona horaria local
-        const startObj = filterStart ? new Date(filterStart + 'T00:00:00') : null;
-        const endObj = filterEnd ? new Date(filterEnd + 'T23:59:59') : null;
-        
-        if (startObj && dateObj < startObj) include = false;
-        if (endObj && dateObj > endObj) include = false;
-      }
-
-      if (include) {
-        dayArr.forEach(act => { if (counts[act.estado] !== undefined) counts[act.estado]++; });
-      }
-    });
-    
-    const container = document.getElementById('states-container'); container.innerHTML = '';
-    listaEstados.forEach(estado => {
-      const div = document.createElement('div'); div.className = `state-item ${counts[estado] > 0 ? 'active' : ''}`;
-      div.innerHTML = `<span>${estado}</span><span class="state-count" style="background: ${counts[estado] > 0 ? 'var(--primary)' : '#cbd5e1'};">${counts[estado]}</span>`;
-      container.appendChild(div);
-    });
-
-    const labels = listaEstados;
-    const dataValues = listaEstados.map(e => counts[e]);
-    const backgroundColors = dataValues.map(val => val > 0 ? '#2563eb' : '#cbd5e1');
-
-    if (chartInstance) {
-      chartInstance.data.datasets[0].data = dataValues;
-      chartInstance.data.datasets[0].backgroundColor = backgroundColors;
-      chartInstance.update();
-    } else {
-      const ctx = document.getElementById('statesChart').getContext('2d');
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Número de Actividades',
-            data: dataValues,
-            backgroundColor: backgroundColors,
-            borderRadius: 4,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: { label: function(context) { return `${context.parsed.y} actividades`; } }
-            }
-          },
-          scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } },
-            x: { ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 } }
-          }
-        }
-      });
-    }
-  }
-
-  // === EDICIÓN Y ELIMINACIÓN ===
-  window.deleteActivity = function(dateKey, index) {
-    if(confirm("¿Eliminar esta actividad del sistema?")) {
-      activities[dateKey].splice(index, 1);
-      if(activities[dateKey].length === 0) delete activities[dateKey];
-      saveToLocalStorage(); renderCalendar(); renderStatesSummary(); reloadSelectedDate();
-    }
-  };
-
-  window.openEditModal = function(dateKey, index) {
-    editingDate = dateKey; editingIndex = index;
-    const act = activities[dateKey][index];
-    
-    document.getElementById('modal-title').textContent = "Editar Actividad";
-    
-    const [d, m, y] = dateKey.split('/');
-    document.getElementById('input-fecha').value = `${y}-${m}-${d}`;
-    document.getElementById('input-hora').value = act.hora;
-    document.getElementById('input-estado').value = act.estado;
-    document.getElementById('input-parroquia').value = act.parroquia;
-    document.getElementById('input-lugar').value = act.lugar;
-    document.getElementById('input-actividad').value = act.actividad;
-    document.getElementById('input-descripcion').value = act.descripcion;
-    document.getElementById('input-responsable').value = act.responsable;
-    
-    modal.style.display = 'flex';
-  };
-
-  // NAVEGACIÓN Y FORMULARIO
-  document.getElementById('prev-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
-  document.getElementById('next-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
-
-  const modal = document.getElementById('modal-form'), form = document.getElementById('activity-form');
-  
-  function resetForm() {
-    editingDate = null; editingIndex = null;
-    document.getElementById('modal-title').textContent = "Registrar Nueva Actividad";
-    form.reset();
-  }
-
-  document.getElementById('btn-open-modal').addEventListener('click', () => { 
-    resetForm(); modal.style.display = 'flex'; 
-    
-    let defaultDate = new Date().toISOString().split('T')[0];
-    if (selectedDateStr) {
-      const [d, m, y] = selectedDateStr.split('/');
-      defaultDate = `${y}-${m}-${d}`;
-    }
-    document.getElementById('input-fecha').value = defaultDate; 
-  });
-  
-  document.getElementById('btn-close-modal').addEventListener('click', () => { 
-    modal.style.display = 'none'; resetForm(); 
-  });
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const rawDate = document.getElementById('input-fecha').value;
-    const [y, m, d] = rawDate.split('-');
-    const newDateKey = `${d}/${m}/${y}`;
-
-    const newAct = {
-      hora: document.getElementById('input-hora').value,
-      estado: document.getElementById('input-estado').value,
-      parroquia: document.getElementById('input-parroquia').value, lugar: document.getElementById('input-lugar').value,
-      actividad: document.getElementById('input-actividad').value, descripcion: document.getElementById('input-descripcion').value,
-      responsable: document.getElementById('input-responsable').value
-    };
-
-    if (editingDate !== null && editingIndex !== null) {
-      activities[editingDate].splice(editingIndex, 1);
-      if(activities[editingDate].length === 0) delete activities[editingDate];
-    }
-
-    if (!activities[newDateKey]) activities[newDateKey] = [];
-    activities[newDateKey].push(newAct);
-
-    saveToLocalStorage();
-    modal.style.display = 'none'; resetForm();
-    
-    renderCalendar(); renderStatesSummary();
-    selectedDateStr = newDateKey; reloadSelectedDate();
-  });
-
-  // INICIALIZACIÓN
-  loadFromLocalStorage(); renderCalendar(); renderStatesSummary();
-
   if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-      .catch(err => console.log('Error al registrar el Service Worker:', err));
-  });
-}
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
+        .catch(err => console.log('Error al registrar el Service Worker:', err));
+    });
+  }
 </script>
 
 </body>

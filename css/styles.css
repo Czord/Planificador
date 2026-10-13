@@ -1,6 +1,6 @@
 :root {
-  --primary: #2563eb; 
-  --primary-hover: #1d4ed8;
+  --primary: #1e3a8a; /* Azul institucional más oscuro */
+  --primary-hover: #1e40af;
   --success: #16a34a; 
   --success-hover: #15803d;
   --warning: #ea580c; 
@@ -9,9 +9,9 @@
   --danger-hover: #b91c1c;
   --bg: #f8fafc; 
   --card-bg: #ffffff;
-  --text: #1e293b; 
-  --border: #e2e8f0; 
-  --secondary: #64748b;
+  --text: #0f172a; 
+  --border: #cbd5e1; 
+  --secondary: #475569;
 }
 
 * { 
@@ -23,9 +23,47 @@ body {
   background-color: var(--bg); 
   color: var(--text); 
   display: flex; 
-  justify-content: center; 
-  padding: 20px; 
+  flex-direction: column;
+  align-items: center; 
+  padding: 20px 10px; 
   margin: 0; 
+}
+
+/* Encabezado Institucional */
+.institutional-header {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 3px solid var(--primary);
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.logo-img {
+  height: 65px;
+  width: auto;
+  object-fit: contain;
+}
+
+.main-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .container { 
@@ -87,7 +125,7 @@ body {
 
 .day { 
   padding: 12px 0; 
-  border-radius: 8px; 
+  border-radius: 6px; 
   cursor: pointer; 
   border: 1px solid transparent; 
   transition: all 0.2s; 
@@ -97,9 +135,9 @@ body {
 .has-activities::after { 
   content: ''; 
   display: block; 
-  width: 5px; 
-  height: 5px; 
-  background-color: #ef4444; 
+  width: 6px; 
+  height: 6px; 
+  background-color: #dc2626; 
   border-radius: 50%; 
   margin: 3px auto 0; 
 }
@@ -108,7 +146,7 @@ body {
   border-color: var(--primary); 
   transform: scale(1.05); 
   z-index: 10; 
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2); 
+  box-shadow: 0 4px 8px rgba(30, 58, 138, 0.2); 
 }
 
 .day.selected { 
@@ -121,21 +159,13 @@ body {
 }
 .day.selected.has-activities::after { background-color: white; }
 
-/* Colores pastel por semana */
-.week-0 { background-color: rgba(239, 246, 255, 0.7); } 
-.week-1 { background-color: rgba(240, 253, 244, 0.7); } 
-.week-2 { background-color: rgba(254, 252, 232, 0.7); } 
-.week-3 { background-color: rgba(250, 245, 255, 0.7); } 
-.week-4 { background-color: rgba(255, 247, 237, 0.7); } 
-.week-5 { background-color: rgba(253, 242, 248, 0.7); } 
+/* ESTILOS ALTERNADOS DE SEMANAS (PARES E IMPARES) */
+.week-even { background-color: #ffffff; } /* Semanas Pares: Blanco pulcro */
+.week-odd { background-color: #f1f5f9; }  /* Semanas Impares: Gris sobrio muy claro */
 
-/* Resalte de la semana seleccionada */
-.week-0.selected-week:not(.selected) { background-color: rgba(219, 234, 254, 0.9); border-color: #bfdbfe; }
-.week-1.selected-week:not(.selected) { background-color: rgba(220, 252, 231, 0.9); border-color: #bbf7d0; }
-.week-2.selected-week:not(.selected) { background-color: rgba(254, 249, 195, 0.9); border-color: #fef08a; }
-.week-3.selected-week:not(.selected) { background-color: rgba(243, 232, 255, 0.9); border-color: #e9d5ff; }
-.week-4.selected-week:not(.selected) { background-color: rgba(255, 237, 213, 0.9); border-color: #fed7aa; }
-.week-5.selected-week:not(.selected) { background-color: rgba(252, 231, 243, 0.9); border-color: #fbcfe8; }
+/* RESALTE DE LA SEMANA SELECCIONADA */
+.week-even.selected-week:not(.selected) { background-color: #e2e8f0; border-color: #cbd5e1; }
+.week-odd.selected-week:not(.selected) { background-color: #cbd5e1; border-color: #94a3b8; }
 
 /* Panel de detalles */
 .details-header { 
@@ -184,4 +214,23 @@ body {
 .activity-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
 .activity-header h4 { margin: 0; color: var(--primary); flex: 1; }
 .activity-actions-wrap { display: flex; align-items: center; gap: 8px; }
-.activity-time { font-weight: bold; color: var(--secondary
+.activity-time { font-weight: bold; color: var(--secondary); font-size: 0.9rem; background: #e2e8f0; padding: 2px 8px; border-radius: 12px; }
+.activity-body p { margin: 5px 0; font-size: 0.95rem; }
+
+/* Gráficos y resumen de estados */
+.chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 20px; }
+.states-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+.state-item { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; }
+.state-item.active { background: #dbeafe; border: 1px solid #bfdbfe; }
+.state-count { background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
+.modal-header h3 { margin: 0 0 20px 0; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.form-group { display: flex; flex-direction: column; } 
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: var(--secondary); }
+.form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
