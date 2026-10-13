@@ -10,7 +10,6 @@ self.addEventListener('install', (e) => {
         './js/calendar.js',
         './js/activities.js',
         './js/summary.js',
-        './js/summary-bridge.js',
         'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
         'https://cdn.jsdelivr.net/npm/chart.js'
       ]);
