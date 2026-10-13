@@ -1,6 +1,6 @@
 import { activities, saveToLocalStorage, clearAllActivities, replaceActivities } from './storage.js';
-import { renderCalendar, renderStatesSummary } from './summary-bridge.js'; // Puente de actualización global
-import { selectedDateStr, setSelectedDateStr, reloadSelectedDate } from './calendar.js';
+import { renderCalendar, selectedDateStr, setSelectedDateStr, reloadSelectedDate } from './calendar.js';
+import { renderStatesSummary } from './summary.js';
 
 let currentDayActivities = [];
 let editingDate = null;

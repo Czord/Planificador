@@ -1,5 +1,6 @@
 import { activities } from './storage.js';
 import { loadActivitiesForDate } from './activities.js';
+import { renderStatesSummary } from './summary.js'; // Importamos el resumen directamente
 
 export let currentDate = new Date();
 export let selectedDateStr = null;
