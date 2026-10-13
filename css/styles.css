@@ -234,3 +234,27 @@ body {
 .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: var(--secondary); }
 .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+/* Barra de herramientas principal */
+.main-toolbar {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 12px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid var(--border);
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}

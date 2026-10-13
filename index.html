@@ -25,6 +25,18 @@
   <h1 class="main-title">Planificador de Actividades Relevantes</h1>
 </header>
 
+<!-- BARRA DE HERRAMIENTAS PRINCIPAL (GESTIÓN DE DATOS) -->
+<div class="main-toolbar">
+  <div class="toolbar-group">
+    <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar Excel</button>
+    <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Excel</button>
+    <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
+  </div>
+  <div class="toolbar-group">
+    <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar Todo</button>
+  </div>
+</div>
+
 <div class="container">
   <!-- Tarjeta 1: Calendario -->
   <div class="card calendar-card">
@@ -47,10 +59,6 @@
         <span id="day-counter" class="day-counter" style="display: none;">0 actividades</span>
       </div>
       <div class="actions-bar">
-        <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar</button>
-        <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar</button>
-        <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
-        <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar</button>
         <button id="btn-open-modal" class="btn btn-primary">+ Nueva Actividad</button>
       </div>
     </div>
