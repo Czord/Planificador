@@ -21,9 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
   initSummaryFilters();
   initActivitiesModule();
 
-  // 4. Renderizar por primera vez el calendario y el gráfico resumen
+  // 4. Lógica de Navegación entre Vistas (Pestañas superiores)
+  const btnViewCalendar = document.getElementById('btn-view-calendar');
+  const btnViewSummary = document.getElementById('btn-view-summary');
+  const viewCalendar = document.getElementById('view-calendar');
+  const viewSummary = document.getElementById('view-summary');
+
+  btnViewCalendar.addEventListener('click', () => {
+    viewCalendar.style.display = 'flex';
+    viewSummary.style.display = 'none';
+    btnViewCalendar.className = 'btn btn-primary';
+    btnViewSummary.className = 'btn btn-secondary';
+    renderCalendar();
+  });
+
+  btnViewSummary.addEventListener('click', () => {
+    viewCalendar.style.display = 'none';
+    viewSummary.style.display = 'flex';
+    btnViewSummary.className = 'btn btn-primary';
+    btnViewCalendar.className = 'btn btn-secondary';
+    renderStatesSummary();
+    // Forzar redibujado del gráfico de Chart.js al mostrar la sección
+    window.dispatchEvent(new Event('resize'));
+  });
+
+  // 5. Renderizar por primera vez
   renderCalendar();
   renderStatesSummary();
   
-  console.log('¡Aplicación PNB inicializada con éxito mediante módulos ES6!');
+  console.log('¡Aplicación PNB inicializada con éxito con vistas separadas!');
 });

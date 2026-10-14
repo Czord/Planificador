@@ -25,83 +25,100 @@
   <h1 class="main-title">Planificador de Actividades Relevantes</h1>
 </header>
 
-<!-- BARRA DE HERRAMIENTAS PRINCIPAL (GESTIÓN DE DATOS) -->
+<!-- BARRA DE HERRAMIENTAS PRINCIPAL (NAVEGACIÓN ENTRE VISTAS) -->
 <div class="main-toolbar">
   <div class="toolbar-group">
-    <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar Excel</button>
-    <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Excel</button>
-    <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
-  </div>
-  <div class="toolbar-group">
-    <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar Todo</button>
+    <button id="btn-view-calendar" class="btn btn-primary">📅 Calendario y Actividades</button>
+    <button id="btn-view-summary" class="btn btn-secondary">📊 Resumen y Estadísticas</button>
   </div>
 </div>
 
 <div class="container">
-  <!-- Tarjeta 1: Calendario -->
-  <div class="card calendar-card">
-    <div class="header">
-      <button class="btn btn-primary" id="prev-month">&lt;</button>
-      <h2 id="month-year" style="margin: 0; font-size: 1.2rem;"></h2>
-      <button class="btn btn-primary" id="next-month">&gt;</button>
-    </div>
-    <div class="weekdays">
-      <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
-    </div>
-    <div class="days" id="days-container"></div>
-  </div>
-
-  <!-- Tarjeta 2: Detalle de Actividades del Día -->
-  <div class="card details-card">
-    <div class="details-header">
-      <div>
-        <h3 id="selected-date-title">Selecciona una fecha</h3>
-        <span id="day-counter" class="day-counter" style="display: none;">0 actividades</span>
-      </div>
-      <div class="actions-bar">
-        <button id="btn-open-modal" class="btn btn-primary">+ Nueva Actividad</button>
-      </div>
-    </div>
+  
+  <!-- VISTA 1: CALENDARIO Y ACTIVIDADES -->
+  <div id="view-calendar" class="view-section">
     
-    <div id="filters-container" class="filters-container" style="display: none;">
-      <select id="filter-estado" class="form-control"><option value="">Todos los Estados</option></select>
-      <input type="text" id="filter-parroquia" class="form-control" placeholder="Buscar parroquia...">
+    <!-- Panel de gestión de datos (Exportar, Importar, Limpiar) en la sección de calendario -->
+    <div class="card data-management-card">
+      <h4>Gestión de Registros</h4>
+      <div class="actions-bar">
+        <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar Excel</button>
+        <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Excel</button>
+        <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
+        <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar Todo</button>
+      </div>
     </div>
-    <div id="activity-list" class="activity-list">
-      <p style="color: var(--secondary);">Haz clic en un día para ver la planificación detallada.</p>
-    </div>
-  </div>
 
-  <!-- Tarjeta 3: Resumen y Gráfico por Estado -->
-  <div class="card states-card">
-    <div class="summary-header">
-      <h3>Resumen de Actividades por Estado</h3>
-      
-      <div class="summary-filters">
-        <select id="summary-filter-type" class="form-control" style="flex: unset; width: auto;">
-          <option value="all">Todo el tiempo</option>
-          <option value="day">Día específico</option>
-          <option value="month">Mes específico</option>
-          <option value="range">Rango de fechas (Semana)</option>
-        </select>
+    <div class="calendar-layout-grid">
+      <!-- Tarjeta 1: Calendario -->
+      <div class="card calendar-card">
+        <div class="header">
+          <button class="btn btn-primary" id="prev-month">&lt;</button>
+          <h2 id="month-year" style="margin: 0; font-size: 1.2rem;"></h2>
+          <button class="btn btn-primary" id="next-month">&gt;</button>
+        </div>
+        <div class="weekdays">
+          <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+        </div>
+        <div class="days" id="days-container"></div>
+      </div>
+
+      <!-- Tarjeta 2: Detalle de Actividades del Día -->
+      <div class="card details-card">
+        <div class="details-header">
+          <div>
+            <h3 id="selected-date-title">Selecciona una fecha</h3>
+            <span id="day-counter" class="day-counter" style="display: none;">0 actividades</span>
+          </div>
+          <div class="actions-bar">
+            <button id="btn-open-modal" class="btn btn-primary">+ Nueva Actividad</button>
+          </div>
+        </div>
         
-        <input type="date" id="summary-date-day" class="form-control" style="display: none; flex: unset; width: auto;">
-        <input type="month" id="summary-date-month" class="form-control" style="display: none; flex: unset; width: auto;">
-        
-        <div id="summary-date-range" style="display: none; align-items: center; gap: 5px;">
-          <input type="date" id="summary-date-start" class="form-control" style="flex: unset; width: auto;">
-          <span style="color: var(--secondary); font-weight: bold;">-</span>
-          <input type="date" id="summary-date-end" class="form-control" style="flex: unset; width: auto;">
+        <div id="filters-container" class="filters-container" style="display: none;">
+          <select id="filter-estado" class="form-control"><option value="">Todos los Estados</option></select>
+          <input type="text" id="filter-parroquia" class="form-control" placeholder="Buscar parroquia...">
+        </div>
+        <div id="activity-list" class="activity-list">
+          <p style="color: var(--secondary);">Haz clic en un día para ver la planificación detallada.</p>
         </div>
       </div>
     </div>
-    
-    <div class="chart-container">
-      <canvas id="statesChart"></canvas>
-    </div>
-    
-    <div class="states-grid" id="states-container"></div>
   </div>
+
+  <!-- VISTA 2: RESUMEN Y ESTADÍSTICAS -->
+  <div id="view-summary" class="view-section" style="display: none;">
+    <div class="card states-card">
+      <div class="summary-header">
+        <h3>Resumen de Actividades por Estado</h3>
+        
+        <div class="summary-filters">
+          <select id="summary-filter-type" class="form-control" style="flex: unset; width: auto;">
+            <option value="all">Todo el tiempo</option>
+            <option value="day">Día específico</option>
+            <option value="month">Mes específico</option>
+            <option value="range">Rango de fechas (Semana)</option>
+          </select>
+          
+          <input type="date" id="summary-date-day" class="form-control" style="display: none; flex: unset; width: auto;">
+          <input type="month" id="summary-date-month" class="form-control" style="display: none; flex: unset; width: auto;">
+          
+          <div id="summary-date-range" style="display: none; align-items: center; gap: 5px;">
+            <input type="date" id="summary-date-start" class="form-control" style="flex: unset; width: auto;">
+            <span style="color: var(--secondary); font-weight: bold;">-</span>
+            <input type="date" id="summary-date-end" class="form-control" style="flex: unset; width: auto;">
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <canvas id="statesChart"></canvas>
+      </div>
+      
+      <div class="states-grid" id="states-container"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Modal Formulario de Registro / Edición -->
