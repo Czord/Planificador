@@ -1,26 +1,39 @@
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('planificador-cache-v2').then((cache) => {
-      return cache.addAll([
-        './index.html',
-        './manifest.json',
-        './css/styles.css',
-        './js/app.js',
-        './js/storage.js',
-        './js/calendar.js',
-        './js/activities.js',
-        './js/summary.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-        'https://cdn.jsdelivr.net/npm/chart.js'
-      ]);
-    })
+const CACHE_NAME = 'planificador-cache-v-dynamic';
+
+// Instalación básica del Service Worker
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+// Activación y limpieza de versiones muy antiguas
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
+// Estrategia: "Network First" (Busca primero en la web, si no hay internet usa la caché)
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Si hay internet, clonamos la respuesta fresca y la guardamos en caché automáticamente
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // Si el usuario está sin conexión, servimos lo que tengamos guardado
+        return caches.match(event.request);
+      })
   );
 });
