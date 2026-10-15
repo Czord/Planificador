@@ -9,15 +9,16 @@ let editingIndex = null;
 const modal = document.getElementById('modal-form');
 const form = document.getElementById('activity-form');
 
-// --- FUNCIONES DE NORMALIZACIÓN CORREGIDAS ---
+// --- NORMALIZACIÓN DE FECHA HÍBRIDA Y ROBUSTA ---
 function normalizeDate(rawDate) {
-  if (!rawDate) return "";
+  if (rawDate === undefined || rawDate === null || rawDate === "") return "";
   
-  // Si Excel lo lee como número de serie interno
-  if (typeof rawDate === 'number') {
-    // Si SheetJS tiene el parser de fechas disponible, lo usamos para máxima precisión
+  // Si Excel lo lee como número de serie interno (ej: 46090)
+  const numDate = Number(rawDate);
+  if (!isNaN(numDate) && numDate > 1000) {
+    const integerDay = Math.floor(numDate);
     if (window.XLSX && window.XLSX.SSF && window.XLSX.SSF.parse_date_code) {
-      const o = window.XLSX.SSF.parse_date_code(rawDate);
+      const o = window.XLSX.SSF.parse_date_code(integerDay);
       if (o) {
         const d = String(o.d).padStart(2, '0');
         const m = String(o.m).padStart(2, '0');
@@ -25,8 +26,8 @@ function normalizeDate(rawDate) {
         return `${d}/${m}/${y}`;
       }
     }
-    // Fallback seguro usando UTC para evitar desfases de zona horaria
-    const utc_days = Math.round(rawDate - 25569);
+    // Fallback UTC seguro para números de serie
+    const utc_days = Math.round(integerDay - 25569);
     const dateInfo = new Date(utc_days * 86400 * 1000);
     const d = String(dateInfo.getUTCDate()).padStart(2, '0');
     const m = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
@@ -34,41 +35,64 @@ function normalizeDate(rawDate) {
     return `${d}/${m}/${y}`;
   }
   
-  // Si viene como texto (ej: "3-10-2026", "03/10/2026", etc.)
-  const cleaned = String(rawDate).trim().replace(/[\/\.-]/g, '/');
+  let str = String(rawDate).trim();
+  
+  // Limpiar marcas de tiempo o espacios si los hubiera
+  if (str.includes('T')) {
+    str = str.split('T')[0];
+  } else if (str.includes(' ')) {
+    str = str.split(' ')[0];
+  }
+  
+  const cleaned = str.replace(/[\/\.-]/g, '/');
   const parts = cleaned.split('/');
+  
   if (parts.length === 3) {
-    let day = parts[0].padStart(2, '0');
-    let month = parts[1].padStart(2, '0');
-    let year = parts[2];
-    if (year.length === 2) year = '20' + year;
+    let day, month, year;
+    
+    // Si viene en formato YYYY/MM/DD
+    if (parts[0].length === 4) {
+      year = parts[0];
+      month = parts[1].padStart(2, '0');
+      day = parts[2].padStart(2, '0');
+    } 
+    // Si viene en formato DD/MM/YYYY
+    else if (parts[2].length === 4) {
+      day = parts[0].padStart(2, '0');
+      month = parts[1].padStart(2, '0');
+      year = parts[2];
+    } else {
+      day = parts[0].padStart(2, '0');
+      month = parts[1].padStart(2, '0');
+      year = parts[2];
+      if (year.length === 2) year = '20' + year;
+    }
+    
     return `${day}/${month}/${year}`;
   }
+  
   return rawDate;
 }
 
+// --- NORMALIZACIÓN DE HORA ---
 function normalizeTime(rawTime) {
   if (rawTime === undefined || rawTime === null || rawTime === "") return "";
   
-  // Si Excel lo lee como número decimal (fracción del día, ej: 0.333333 para las 8:00)
-  if (typeof rawTime === 'number') {
-    const fraction = rawTime % 1; // parte decimal
-    const totalSeconds = Math.round(fraction * 86400);
-    const hours = Math.floor(totalSeconds / 3600) % 24;
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    return `${hh}:${mm}`;
-  }
-  
   const timeStr = String(rawTime).trim().toLowerCase();
   
-  // Detectar indicadores PM o AM
+  const numTime = Number(timeStr);
+  if (!isNaN(numTime) && numTime >= 0 && numTime < 1) {
+    const totalSeconds = Math.round(numTime * 86400);
+    const hours = Math.floor(totalSeconds / 3600) % 24;
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+  
   const isPM = timeStr.includes('p') || timeStr.includes('pm');
   const isAM = timeStr.includes('a') || timeStr.includes('am');
   
   const matches = timeStr.match(/\d+/g);
-  if (!matches || matches.length < 2) return rawTime;
+  if (!matches || matches.length < 2) return String(rawTime);
   
   let hours = parseInt(matches[0], 10);
   let minutes = parseInt(matches[1], 10);
@@ -79,11 +103,9 @@ function normalizeTime(rawTime) {
     hours = 0;
   }
   
-  const hh = String(hours).padStart(2, '0');
-  const mm = String(minutes).padStart(2, '0');
-  return `${hh}:${mm}`;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
-// ---------------------------------------------
+// --------------------------------------------------------------------------
 
 export function initActivitiesModule() {
   document.getElementById('filter-estado').addEventListener('change', renderFilteredActivities);
@@ -122,7 +144,7 @@ export function initActivitiesModule() {
     XLSX.writeFile(wb, "Planificacion_Policial.xlsx");
   });
 
-  // Importar Excel
+  // Importar Excel localmente
   document.getElementById('btn-import-trigger').addEventListener('click', () => {
     document.getElementById('excel-file').click();
   });
@@ -133,38 +155,72 @@ export function initActivitiesModule() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
-      const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-      const newActs = {};
-      
-      json.forEach(row => {
-        const rawDate = row.Fecha;
-        if (!rawDate) return;
-        
-        const date = normalizeDate(rawDate);
-        const hora = normalizeTime(row.Hora);
-
-        if (!newActs[date]) newActs[date] = [];
-        newActs[date].push({
-          hora: hora, 
-          estado: row.Estado || "",
-          parroquia: row.Parroquia || "", 
-          lugar: row.Lugar || "",
-          actividad: row.Actividad || "", 
-          descripcion: row.Descripcion || "",
-          responsable: row.Responsable || ""
-        });
-      });
-
-      replaceActivities(newActs);
-      alert("Datos importados y adaptados exitosamente.");
+      processExcelData(data);
       event.target.value = '';
-      renderCalendar();
-      renderStatesSummary();
-      reloadSelectedDate();
     };
     reader.readAsArrayBuffer(file);
   });
+
+  // --- SINCRONIZAR DESDE GOOGLE APPS SCRIPT (Nube Directa) ---
+  const btnDriveLink = document.getElementById('btn-drive-link');
+  if (btnDriveLink) {
+    btnDriveLink.addEventListener('click', async () => {
+      let scriptUrl = localStorage.getItem('saved_script_url');
+      let useSaved = false;
+
+      if (scriptUrl) {
+        useSaved = confirm(`¿Deseas sincronizar los datos con tu enlace de Google Apps Script guardado?\n\n(Haz clic en "Cancelar" si deseas ingresar o cambiar de enlace).`);
+      }
+
+      if (!useSaved || !scriptUrl) {
+        scriptUrl = prompt("Pega la URL de tu Aplicación Web de Google Apps Script:");
+        if (!scriptUrl) return;
+        localStorage.setItem('saved_script_url', scriptUrl);
+      }
+
+      try {
+        alert("Sincronizando con la nube...");
+        const response = await fetch(scriptUrl);
+        
+        if (!response.ok) {
+          throw new Error("No se pudo conectar con el servidor.");
+        }
+        
+        const jsonRows = await response.json();
+        
+        const newActs = {};
+        jsonRows.forEach(row => {
+          const rawDate = row.Fecha || row.fecha || row.FECHA;
+          if (!rawDate) return;
+          
+          const date = normalizeDate(rawDate);
+          const hora = normalizeTime(row.Hora || row.hora || row.HORA);
+
+          if (!newActs[date]) newActs[date] = [];
+          newActs[date].push({
+            hora: hora, 
+            estado: row.Estado || row.estado || row.ESTADO || "",
+            parroquia: row.Parroquia || row.parroquia || row.PARROQUIA || "", 
+            lugar: row.Lugar || row.lugar || row.LUGAR || "",
+            actividad: row.Actividad || row.actividad || row.ACTIVIDAD || "", 
+            descripcion: row.Descripcion || row.descripcion || row.DESCRIPCION || "",
+            responsable: row.Responsable || row.responsable || row.RESPONSABLE || ""
+          });
+        });
+
+        replaceActivities(newActs);
+        renderCalendar();
+        renderStatesSummary();
+        reloadSelectedDate();
+        alert("¡Planificación sincronizada exitosamente desde la nube!");
+
+      } catch (error) {
+        console.error("Error al sincronizar:", error);
+        alert("Error al sincronizar. Verifica que la URL del Apps Script sea correcta y esté implementada para 'Cualquier usuario'.");
+      }
+    });
+  }
+  // ------------------------------------------------------------------------------------
 
   // Modal
   document.getElementById('btn-open-modal').addEventListener('click', () => {
@@ -248,6 +304,37 @@ export function initActivitiesModule() {
 
     modal.style.display = 'flex';
   };
+}
+
+// Procesamiento para archivos Excel locales (.xlsx / .xls)
+function processExcelData(data) {
+  const wb = XLSX.read(data, { type: 'array' });
+  const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  const newActs = {};
+  
+  json.forEach(row => {
+    const rawDate = row.Fecha || row.fecha || row.FECHA;
+    if (rawDate === undefined || rawDate === null || rawDate === "") return;
+    
+    const date = normalizeDate(rawDate);
+    const hora = normalizeTime(row.Hora || row.hora || row.HORA);
+
+    if (!newActs[date]) newActs[date] = [];
+    newActs[date].push({
+      hora: hora, 
+      estado: row.Estado || row.estado || row.ESTADO || "",
+      parroquia: row.Parroquia || row.parroquia || row.PARROQUIA || "", 
+      lugar: row.Lugar || row.lugar || row.LUGAR || "",
+      actividad: row.Actividad || row.actividad || row.ACTIVIDAD || "", 
+      descripcion: row.Descripcion || row.descripcion || row.DESCRIPCION || "",
+      responsable: row.Responsable || row.responsable || row.RESPONSABLE || ""
+    });
+  });
+
+  replaceActivities(newActs);
+  renderCalendar();
+  renderStatesSummary();
+  reloadSelectedDate();
 }
 
 export function loadActivitiesForDate(dateKey, day, monthName, year) {

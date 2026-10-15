@@ -38,13 +38,14 @@
   <!-- VISTA 1: CALENDARIO Y ACTIVIDADES -->
   <div id="view-calendar" class="view-section">
     
-    <!-- Panel de gestión de datos (Exportar, Importar, Limpiar) en la sección de calendario -->
+    <!-- Panel de gestión de datos (Exportar, Importar, Link de Drive, Limpiar) en la sección de calendario -->
     <div class="card data-management-card">
       <h4>Gestión de Registros</h4>
       <div class="actions-bar">
         <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar Excel</button>
-        <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Excel</button>
+        <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Archivo</button>
         <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
+        <button id="btn-drive-link" class="btn btn-primary" title="Importar mediante enlace de Google Drive">🔗 Link de Drive</button>
         <button id="btn-clear-data" class="btn btn-danger" title="Borrar todo">🗑️ Limpiar Todo</button>
       </div>
     </div>
