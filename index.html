@@ -145,6 +145,27 @@
   </div>
 </div>
 
+<!-- Modal de Detalle de Actividad -->
+  <div id="modal-detail" class="modal" style="display: none;">
+    <div class="modal-content card" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3 id="detail-modal-title">Detalle de la Actividad</h3>
+        <button id="btn-close-detail" class="btn-icon" style="font-size: 1.2rem;" title="Cerrar">✕</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+        <p><strong>⏱ Hora:</strong> <span id="detail-hora"></span></p>
+        <p><strong>📍 Estado / Parroquia:</strong> <span id="detail-ubicacion"></span></p>
+        <p><strong>📌 Lugar:</strong> <span id="detail-lugar"></span></p>
+        <p><strong>📋 Actividad:</strong> <span id="detail-actividad"></span></p>
+        <div>
+          <p><strong>📝 Descripción:</strong></p>
+          <div id="detail-descripcion" style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-top: 5px; white-space: pre-wrap; word-break: break-word; color: var(--text);"></div>
+        </div>
+        <p><strong>👤 Responsable:</strong> <span id="detail-responsable"></span></p>
+      </div>
+    </div>
+  </div>
+
 <!-- Script Principal como Módulo ES6 -->
 <script type="module" src="./js/app.js"></script>
 

@@ -8,12 +8,12 @@ let editingIndex = null;
 
 const modal = document.getElementById('modal-form');
 const form = document.getElementById('activity-form');
+const modalDetail = document.getElementById('modal-detail');
 
-// --- NORMALIZACIÓN DE FECHA HÍBRIDA Y ROBUSTA ---
+// --- NORMALIZACIÓN DE FECHA ---
 function normalizeDate(rawDate) {
   if (rawDate === undefined || rawDate === null || rawDate === "") return "";
   
-  // Si Excel lo lee como número de serie interno (ej: 46090)
   const numDate = Number(rawDate);
   if (!isNaN(numDate) && numDate > 1000) {
     const integerDay = Math.floor(numDate);
@@ -26,7 +26,6 @@ function normalizeDate(rawDate) {
         return `${d}/${m}/${y}`;
       }
     }
-    // Fallback UTC seguro para números de serie
     const utc_days = Math.round(integerDay - 25569);
     const dateInfo = new Date(utc_days * 86400 * 1000);
     const d = String(dateInfo.getUTCDate()).padStart(2, '0');
@@ -36,8 +35,6 @@ function normalizeDate(rawDate) {
   }
   
   let str = String(rawDate).trim();
-  
-  // Limpiar marcas de tiempo o espacios si los hubiera
   if (str.includes('T')) {
     str = str.split('T')[0];
   } else if (str.includes(' ')) {
@@ -49,15 +46,11 @@ function normalizeDate(rawDate) {
   
   if (parts.length === 3) {
     let day, month, year;
-    
-    // Si viene en formato YYYY/MM/DD
     if (parts[0].length === 4) {
       year = parts[0];
       month = parts[1].padStart(2, '0');
       day = parts[2].padStart(2, '0');
-    } 
-    // Si viene en formato DD/MM/YYYY
-    else if (parts[2].length === 4) {
+    } else if (parts[2].length === 4) {
       day = parts[0].padStart(2, '0');
       month = parts[1].padStart(2, '0');
       year = parts[2];
@@ -67,10 +60,8 @@ function normalizeDate(rawDate) {
       year = parts[2];
       if (year.length === 2) year = '20' + year;
     }
-    
     return `${day}/${month}/${year}`;
   }
-  
   return rawDate;
 }
 
@@ -79,7 +70,6 @@ function normalizeTime(rawTime) {
   if (rawTime === undefined || rawTime === null || rawTime === "") return "";
   
   const timeStr = String(rawTime).trim().toLowerCase();
-  
   const numTime = Number(timeStr);
   if (!isNaN(numTime) && numTime >= 0 && numTime < 1) {
     const totalSeconds = Math.round(numTime * 86400);
@@ -161,7 +151,7 @@ export function initActivitiesModule() {
     reader.readAsArrayBuffer(file);
   });
 
-  // --- SINCRONIZAR DESDE GOOGLE APPS SCRIPT (Nube Directa) ---
+  // --- SINCRONIZAR DESDE GOOGLE APPS SCRIPT ---
   const btnDriveLink = document.getElementById('btn-drive-link');
   if (btnDriveLink) {
     btnDriveLink.addEventListener('click', async () => {
@@ -181,13 +171,9 @@ export function initActivitiesModule() {
       try {
         alert("Sincronizando con la nube...");
         const response = await fetch(scriptUrl);
-        
-        if (!response.ok) {
-          throw new Error("No se pudo conectar con el servidor.");
-        }
+        if (!response.ok) throw new Error("No se pudo conectar con el servidor.");
         
         const jsonRows = await response.json();
-        
         const newActs = {};
         jsonRows.forEach(row => {
           const rawDate = row.Fecha || row.fecha || row.FECHA;
@@ -220,9 +206,8 @@ export function initActivitiesModule() {
       }
     });
   }
-  // ------------------------------------------------------------------------------------
 
-  // Modal
+  // --- MODAL DE CREAR / EDITAR ---
   document.getElementById('btn-open-modal').addEventListener('click', () => {
     resetForm();
     modal.style.display = 'flex';
@@ -237,6 +222,15 @@ export function initActivitiesModule() {
   document.getElementById('btn-close-modal').addEventListener('click', () => {
     modal.style.display = 'none';
     resetForm();
+  });
+
+  // --- MODAL DE DETALLE (Cerrar) ---
+  document.getElementById('btn-close-detail').addEventListener('click', () => {
+    modalDetail.style.display = 'none';
+  });
+
+  modalDetail.addEventListener('click', (e) => {
+    if (e.target === modalDetail) modalDetail.style.display = 'none';
   });
 
   form.addEventListener('submit', (e) => {
@@ -303,6 +297,21 @@ export function initActivitiesModule() {
     document.getElementById('input-responsable').value = act.responsable;
 
     modal.style.display = 'flex';
+  };
+
+  // Función global para abrir el panel grande de detalles
+  window.openDetailModal = function(dateKey, index) {
+    const act = activities[dateKey][index];
+    if (!act) return;
+
+    document.getElementById('detail-hora').textContent = act.hora || "No especificada";
+    document.getElementById('detail-ubicacion').textContent = `${act.estado || "N/D"} > ${act.parroquia || "N/D"}`;
+    document.getElementById('detail-lugar').textContent = act.lugar || "No especificado";
+    document.getElementById('detail-actividad').textContent = act.actividad || "Sin título";
+    document.getElementById('detail-descripcion').textContent = act.descripcion || "Sin descripción detallada.";
+    document.getElementById('detail-responsable').textContent = act.responsable || "No asignado";
+
+    modalDetail.style.display = 'flex';
   };
 }
 
@@ -374,10 +383,15 @@ function renderFilteredActivities() {
   filtered.forEach(act => {
     const item = document.createElement('div');
     item.className = 'activity-item';
+    item.style.cursor = 'pointer';
+    
+    // Al hacer clic en la tarjeta se abre el detalle grande, pero los botones de editar/eliminar funcionan por separado
+    item.onclick = () => window.openDetailModal(selectedDateStr, act.originalIndex);
+
     item.innerHTML = `
       <div class="activity-header">
         <h4>${act.actividad}</h4>
-        <div class="activity-actions-wrap">
+        <div class="activity-actions-wrap" onclick="event.stopPropagation()">
           <span class="activity-time">⏱ ${act.hora}</span>
           <button class="btn-icon" onclick="openEditModal('${selectedDateStr}', ${act.originalIndex})" title="Editar">✏️</button>
           <button class="btn-icon" onclick="deleteActivity('${selectedDateStr}', ${act.originalIndex})" style="color:var(--danger)" title="Eliminar">🗑️</button>
