@@ -312,3 +312,85 @@ body {
   font-size: 1.05rem;
   font-weight: 600;
 }
+
+@media print {
+  /* Ocultar explícitamente cualquier sección de calendario, filtros y botones */
+  #calendar,
+  .main-toolbar,
+  .data-management-card
+  #calendar-view,
+  .calendar-card,
+  .calendar-section,
+  .calendar-container,
+  #summary-view,
+  .toolbar,
+  #filter-parroquia,
+  .activity-actions-wrap,
+  button,
+  .btn,
+  .btn-icon,
+  .modal {
+    display: none !important;
+  }
+
+  /* El resto de tus reglas de impresión se mantienen igual... */
+  header,
+  .nav-header,
+  #day-view {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+  }
+
+  #activity-list {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .activity-item {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1px solid #64748b !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    margin-bottom: 16px !important;
+    padding: 16px !important;
+    border-radius: 6px !important;
+  }
+
+  .activity-item h4 {
+    color: #0f172a !important;
+    font-size: 13pt !important;
+    font-weight: bold;
+    margin-bottom: 2px !important;
+  }
+
+  .activity-time {
+    display: inline-block !important;
+    visibility: visible !important;
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    color: #0284c7 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .activity-body p {
+    margin: 5px 0 !important;
+    font-size: 11pt !important;
+    color: #1e293b !important;
+    line-height: 1.4;
+  }
+}

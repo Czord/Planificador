@@ -101,6 +101,14 @@ export function initActivitiesModule() {
   document.getElementById('filter-estado').addEventListener('change', renderFilteredActivities);
   document.getElementById('filter-parroquia').addEventListener('input', renderFilteredActivities);
 
+  // Botón para exportar/imprimir PDF del día seleccionado
+  const btnPrintDay = document.getElementById('btn-print-day');
+  if (btnPrintDay) {
+    btnPrintDay.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
   document.getElementById('btn-clear-data').addEventListener('click', () => {
     if (confirm("¿Estás seguro de borrar TODAS las actividades? Esto no se puede deshacer.")) {
       clearAllActivities();
@@ -110,11 +118,12 @@ export function initActivitiesModule() {
       document.getElementById('filters-container').style.display = 'none';
       document.getElementById('day-counter').style.display = 'none';
       document.getElementById('selected-date-title').textContent = "Selecciona una fecha";
+      if (btnPrintDay) btnPrintDay.style.display = 'none';
       setSelectedDateStr(null);
     }
   });
 
-  // Exportar Excel
+  // Exportar Excel general
   document.getElementById('btn-export').addEventListener('click', () => {
     let flatData = [];
     Object.keys(activities).forEach(date => {
@@ -224,7 +233,7 @@ export function initActivitiesModule() {
     resetForm();
   });
 
-  // --- MODAL DE DETALLE (Cerrar) ---
+  // --- MODAL DE DETALLE ---
   document.getElementById('btn-close-detail').addEventListener('click', () => {
     modalDetail.style.display = 'none';
   });
@@ -267,7 +276,7 @@ export function initActivitiesModule() {
     reloadSelectedDate();
   });
 
-  // Exponer funciones globales requeridas por el render dinámico HTML
+  // Exponer funciones globales
   window.deleteActivity = function(dateKey, index) {
     if (confirm("¿Eliminar esta actividad del sistema?")) {
       activities[dateKey].splice(index, 1);
@@ -299,7 +308,6 @@ export function initActivitiesModule() {
     modal.style.display = 'flex';
   };
 
-  // Función global para abrir el panel grande de detalles
   window.openDetailModal = function(dateKey, index) {
     const act = activities[dateKey][index];
     if (!act) return;
@@ -315,7 +323,7 @@ export function initActivitiesModule() {
   };
 }
 
-// Procesamiento para archivos Excel locales (.xlsx / .xls)
+// Procesamiento para archivos Excel locales
 function processExcelData(data) {
   const wb = XLSX.read(data, { type: 'array' });
   const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
@@ -351,15 +359,19 @@ export function loadActivitiesForDate(dateKey, day, monthName, year) {
   currentDayActivities = activities[dateKey] || [];
   const filters = document.getElementById('filters-container');
   const counter = document.getElementById('day-counter');
+  const btnPrintDay = document.getElementById('btn-print-day');
 
   if (currentDayActivities.length === 0) {
     filters.style.display = 'none';
     counter.style.display = 'none';
+    if (btnPrintDay) btnPrintDay.style.display = 'none';
     document.getElementById('activity-list').innerHTML = '<p style="color: var(--secondary);">No hay actividades programadas para esta fecha.</p>';
     return;
   }
+  
   filters.style.display = 'flex';
   counter.style.display = 'block';
+  if (btnPrintDay) btnPrintDay.style.display = 'inline-flex';
   renderFilteredActivities();
 }
 
@@ -384,15 +396,15 @@ function renderFilteredActivities() {
     const item = document.createElement('div');
     item.className = 'activity-item';
     item.style.cursor = 'pointer';
-    
-    // Al hacer clic en la tarjeta se abre el detalle grande, pero los botones de editar/eliminar funcionan por separado
     item.onclick = () => window.openDetailModal(selectedDateStr, act.originalIndex);
 
     item.innerHTML = `
       <div class="activity-header">
-        <h4>${act.actividad}</h4>
-        <div class="activity-actions-wrap" onclick="event.stopPropagation()">
+        <div>
+          <h4>${act.actividad}</h4>
           <span class="activity-time">⏱ ${act.hora}</span>
+        </div>
+        <div class="activity-actions-wrap" onclick="event.stopPropagation()">
           <button class="btn-icon" onclick="openEditModal('${selectedDateStr}', ${act.originalIndex})" title="Editar">✏️</button>
           <button class="btn-icon" onclick="deleteActivity('${selectedDateStr}', ${act.originalIndex})" style="color:var(--danger)" title="Eliminar">🗑️</button>
         </div>
