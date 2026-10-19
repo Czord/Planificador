@@ -393,4 +393,68 @@ body {
     color: #1e293b !important;
     line-height: 1.4;
   }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  /* Reducir la escala global del documento al 60% */
+  body {
+    zoom: 60%; /* Soportado por Chrome, Edge, Safari y la mayoría de motores WebKit/Chromium */
+  }
+
+  /* Soporte alternativo mediante zoom relativo de fuente para motores estrictos */
+  html {
+    font-size: 60%;
+  }
+
+  /* Asegurar que el contenedor ocupe el 100% del ancho con la nueva escala */
+  .container,
+  #view-calendar,
+  .calendar-layout-grid,
+  .details-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.printing-range #view-calendar,
+  body.printing-range #view-summary,
+  body.printing-range header:not(.institutional-header) {
+    display: none !important;
+  }
+
+  body.printing-range #print-range-container {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Estilos para las tarjetas y títulos dentro del reporte de rango */
+  .print-range-header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 10px;
+  }
+
+  .print-day-group {
+    margin-bottom: 25px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-day-title {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #0284c7;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+
 }

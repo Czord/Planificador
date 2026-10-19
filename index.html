@@ -42,6 +42,7 @@
     <div class="card data-management-card">
       <h4>Gestión de Registros</h4>
       <div class="actions-bar">
+        <button id="btn-range-modal-trigger" class="btn btn-secondary" title="Exportar PDF por Rango de Fechas">🖨️ PDF por Rango</button>
         <button id="btn-export" class="btn btn-success" title="Descargar como Excel">📥 Exportar Excel</button>
         <button id="btn-import-trigger" class="btn btn-warning" title="Cargar desde Excel">📤 Importar Archivo</button>
         <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
@@ -169,6 +170,30 @@
       </div>
     </div>
   </div>
+
+<!-- Modal Selección de Rango de Fechas para PDF -->
+<div id="modal-range" class="modal" style="display: none;">
+  <div class="modal-content card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h3>Exportar PDF por Rango</h3>
+      <button id="btn-close-range" class="btn-icon" style="font-size: 1.2rem;" title="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+      <div class="form-group">
+        <label style="font-weight: bold; display: block; margin-bottom: 5px;">Fecha de Inicio</label>
+        <input type="date" id="input-range-start" class="form-control" style="width: 100%;">
+      </div>
+      <div class="form-group">
+        <label style="font-weight: bold; display: block; margin-bottom: 5px;">Fecha de Fin</label>
+        <input type="date" id="input-range-end" class="form-control" style="width: 100%;">
+      </div>
+      <button id="btn-print-range-action" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Generar e Imprimir PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor oculto exclusivamente para imprimir el reporte de rango -->
+<div id="print-range-container" style="display: none;"></div>
 
 <!-- Script Principal como Módulo ES6 -->
 <script type="module" src="./js/app.js"></script>

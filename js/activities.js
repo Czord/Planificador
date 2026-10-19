@@ -123,6 +123,122 @@ export function initActivitiesModule() {
     }
   });
 
+  // --- MODAL DE RANGO DE FECHAS PARA PDF ---
+  const modalRange = document.getElementById('modal-range');
+  const btnRangeTrigger = document.getElementById('btn-range-modal-trigger');
+  const btnCloseRange = document.getElementById('btn-close-range');
+  const btnPrintRangeAction = document.getElementById('btn-print-range-action');
+
+  if (btnRangeTrigger && modalRange) {
+    btnRangeTrigger.addEventListener('click', () => {
+      modalRange.style.display = 'flex';
+      // Establecer fechas por defecto (mes actual)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      document.getElementById('input-range-start').value = `${year}-${month}-01`;
+      document.getElementById('input-range-end').value = new Date(year, now.getMonth() + 1, 0).toISOString().split('T')[0];
+    });
+
+    btnCloseRange.addEventListener('click', () => {
+      modalRange.style.display = 'none';
+    });
+
+    modalRange.addEventListener('click', (e) => {
+      if (e.target === modalRange) modalRange.style.display = 'none';
+    });
+
+    btnPrintRangeAction.addEventListener('click', () => {
+    const rawStart = document.getElementById('input-range-start').value;
+    const rawEnd = document.getElementById('input-range-end').value;
+
+    if (!rawStart || !rawEnd) {
+      alert("Por favor selecciona ambas fechas.");
+      return;
+    }
+
+    const startDate = new Date(rawStart + 'T00:00:00');
+    const endDate = new Date(rawEnd + 'T23:59:59');
+
+    if (startDate > endDate) {
+      alert("La fecha de inicio no puede ser posterior a la fecha de fin.");
+      return;
+    }
+
+    const rangeContainer = document.getElementById('print-range-container');
+    rangeContainer.innerHTML = '';
+
+    let matchingDaysCount = 0;
+    
+    // 1. Cabecera limpia del reporte
+    let htmlContent = `
+      <div class="print-range-header">
+        <h2>Reporte de Planificación por Rango</h2>
+        <p><strong>Desde:</strong> ${rawStart.split('-').reverse().join('/')} &nbsp;|&nbsp; <strong>Hasta:</strong> ${rawEnd.split('-').reverse().join('/')}</p>
+      </div>
+    `;
+
+    // 2. Obtener y ordenar las fechas cronológicamente
+    const sortedDateKeys = Object.keys(activities).sort((a, b) => {
+      const [dA, mA, yA] = a.split('/');
+      const [dB, mB, yB] = b.split('/');
+      return new Date(`${yA}-${mA}-${dA}`) - new Date(`${yB}-${mB}-${dB}`);
+    });
+
+    sortedDateKeys.forEach(dateKey => {
+      const [d, m, y] = dateKey.split('/');
+      const actDate = new Date(`${y}-${m}-${d}T00:00:00`);
+
+      if (actDate >= startDate && actDate <= endDate) {
+        const dayActs = activities[dateKey];
+        if (dayActs && dayActs.length > 0) {
+          matchingDaysCount++;
+          
+          // Agrupador limpio por día con su respectivo título de fecha
+          htmlContent += `
+            <div class="print-day-group">
+              <div class="print-day-title">📅 Fecha: ${dateKey} (${dayActs.length} ${dayActs.length === 1 ? 'actividad' : 'actividades'})</div>
+          `;
+
+          // Ordenar actividades del día por hora
+          const sortedActs = [...dayActs].sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+          
+          sortedActs.forEach(act => {
+            htmlContent += `
+              <div class="activity-item" style="margin-bottom: 12px; padding: 12px; border: 1px solid #64748b; border-radius: 6px; background: #fff;">
+                <div style="margin-bottom: 6px;">
+                  <h4 style="margin: 0 0 4px 0; font-size: 12pt; color: #0f172a;">${act.actividad || 'Sin título'}</h4>
+                  <span style="font-size: 10pt; font-weight: bold; color: #0284c7;">⏱ ${act.hora || 'No especificada'}</span>
+                </div>
+                <div style="margin-top: 6px; font-size: 10pt; color: #1e293b;">
+                  <p style="margin: 3px 0;"><strong>Ubicación:</strong> ${act.estado || ''} > ${act.parroquia || ''} (${act.lugar || ''})</p>
+                  <p style="margin: 3px 0;"><strong>Descripción:</strong> ${act.descripcion || 'Sin descripción'}</p>
+                  <p style="margin: 3px 0;"><strong>Responsable:</strong> ${act.responsable || 'No asignado'}</p>
+                </div>
+              </div>
+            `;
+          });
+
+          htmlContent += `</div>`;
+        }
+      }
+    });
+
+    if (matchingDaysCount === 0) {
+      alert("No se encontraron actividades registradas en el rango de fechas seleccionado.");
+      return;
+    }
+
+    rangeContainer.innerHTML = htmlContent;
+    modalRange.style.display = 'none';
+
+    // 3. Activar el modo de impresión de rango de forma limpia
+    document.body.classList.add('printing-range');
+    window.print();
+    document.body.classList.remove('printing-range');
+  });
+  }
+
   // Exportar Excel general
   document.getElementById('btn-export').addEventListener('click', () => {
     let flatData = [];
