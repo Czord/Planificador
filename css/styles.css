@@ -401,7 +401,7 @@ body {
 
   /* Reducir la escala global del documento al 60% */
   body {
-    zoom: 60%; /* Soportado por Chrome, Edge, Safari y la mayoría de motores WebKit/Chromium */
+    zoom: 75%; /* Soportado por Chrome, Edge, Safari y la mayoría de motores WebKit/Chromium */
   }
 
   /* Soporte alternativo mediante zoom relativo de fuente para motores estrictos */

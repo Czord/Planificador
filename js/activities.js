@@ -10,6 +10,40 @@ const modal = document.getElementById('modal-form');
 const form = document.getElementById('activity-form');
 const modalDetail = document.getElementById('modal-detail');
 
+// Define aquí el orden exacto en el que deseas que aparezcan los estados
+const estadosOrden = [
+  "Distrito Capital",
+  "Miranda",
+  "La Guaira",
+  "Aragua",
+  "Carabobo",
+  "Yaracuy",
+  "Falcón",
+  "Lara",
+  "Zulia",
+  "Mérida",
+  "Táchira",
+  "Trujillo",
+  "Apure",
+  "Barinas",
+  "Cojedes",
+  "Guárico",
+  "Portuguesa",
+  "Anzoátegui",
+  "Monagas",
+  "Sucre",
+  "Amazonas",
+  "Bolívar",
+  "Delta Amacuro",
+  "Guayana Esequiba",
+  "Nueva Esparta"
+];
+
+function getEstadoIndex(estado) {
+  const index = estadosOrden.indexOf(estado);
+  return index !== -1 ? index : 999; // Si un estado no está en la lista, se colocará al final
+}
+
 // --- NORMALIZACIÓN DE FECHA ---
 function normalizeDate(rawDate) {
   if (rawDate === undefined || rawDate === null || rawDate === "") return "";
@@ -200,18 +234,24 @@ export function initActivitiesModule() {
               <div class="print-day-title">📅 Fecha: ${dateKey} (${dayActs.length} ${dayActs.length === 1 ? 'actividad' : 'actividades'})</div>
           `;
 
-          // Ordenar actividades del día por hora
-          const sortedActs = [...dayActs].sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+          // Ordenar actividades del día por el orden personalizado de estados y luego por hora
+          const sortedActs = [...dayActs].sort((a, b) => {
+            const indexA = getEstadoIndex(a.estado);
+            const indexB = getEstadoIndex(b.estado);
+            if (indexA !== indexB) return indexA - indexB;
+            return (a.hora || "").localeCompare(b.hora || "");
+          });
           
           sortedActs.forEach(act => {
             htmlContent += `
               <div class="activity-item" style="margin-bottom: 12px; padding: 12px; border: 1px solid #64748b; border-radius: 6px; background: #fff;">
                 <div style="margin-bottom: 6px;">
-                  <h4 style="margin: 0 0 4px 0; font-size: 12pt; color: #0f172a;">${act.actividad || 'Sin título'}</h4>
+                  <h4 style="margin: 0 0 4px 0; font-size: 11.5pt; color: #0f172a;">${act.estado || ''} - ${act.actividad || 'Sin título'}</h4>
                   <span style="font-size: 10pt; font-weight: bold; color: #0284c7;">⏱ ${act.hora || 'No especificada'}</span>
                 </div>
                 <div style="margin-top: 6px; font-size: 10pt; color: #1e293b;">
-                  <p style="margin: 3px 0;"><strong>Ubicación:</strong> ${act.estado || ''} > ${act.parroquia || ''} (${act.lugar || ''})</p>
+                  <p style="margin: 3px 0;"><strong>Parroquia:</strong> ${act.parroquia || ''}</p>
+                  <p style="margin: 3px 0;"><strong>Lugar:</strong> ${act.lugar || ''}</p>
                   <p style="margin: 3px 0;"><strong>Descripción:</strong> ${act.descripcion || 'Sin descripción'}</p>
                   <p style="margin: 3px 0;"><strong>Responsable:</strong> ${act.responsable || 'No asignado'}</p>
                 </div>
@@ -429,7 +469,8 @@ export function initActivitiesModule() {
     if (!act) return;
 
     document.getElementById('detail-hora').textContent = act.hora || "No especificada";
-    document.getElementById('detail-ubicacion').textContent = `${act.estado || "N/D"} > ${act.parroquia || "N/D"}`;
+    document.getElementById('detail-estado').textContent = act.estado || "No especificado";
+    document.getElementById('detail-parroquia').textContent = act.parroquia || "No especificada";
     document.getElementById('detail-lugar').textContent = act.lugar || "No especificado";
     document.getElementById('detail-actividad').textContent = act.actividad || "Sin título";
     document.getElementById('detail-descripcion').textContent = act.descripcion || "Sin descripción detallada.";
@@ -507,17 +548,24 @@ function renderFilteredActivities() {
     return;
   }
 
-  filtered.sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+  // Ordenar según la lista personalizada de estados y secundariamente por hora
+  filtered.sort((a, b) => {
+    const indexA = getEstadoIndex(a.estado);
+    const indexB = getEstadoIndex(b.estado);
+    if (indexA !== indexB) return indexA - indexB;
+    return (a.hora || "").localeCompare(b.hora || "");
+  });
   filtered.forEach(act => {
     const item = document.createElement('div');
     item.className = 'activity-item';
     item.style.cursor = 'pointer';
     item.onclick = () => window.openDetailModal(selectedDateStr, act.originalIndex);
 
+    // MODIFICADO: Estado incluido en el título y campos de Parroquia y Lugar separados
     item.innerHTML = `
       <div class="activity-header">
         <div>
-          <h4>${act.actividad}</h4>
+          <h4>${act.estado} - ${act.actividad}</h4>
           <span class="activity-time">⏱ ${act.hora}</span>
         </div>
         <div class="activity-actions-wrap" onclick="event.stopPropagation()">
@@ -526,7 +574,8 @@ function renderFilteredActivities() {
         </div>
       </div>
       <div class="activity-body">
-        <p><strong>Ubicación:</strong> ${act.estado} > ${act.parroquia} (${act.lugar})</p>
+        <p><strong>Parroquia:</strong> ${act.parroquia}</p>
+        <p><strong>Lugar:</strong> ${act.lugar}</p>
         <p><strong>Descripción:</strong> ${act.descripcion}</p>
         <p><strong>Responsable:</strong> ${act.responsable}</p>
       </div>`;

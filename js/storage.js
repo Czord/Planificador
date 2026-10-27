@@ -1,8 +1,29 @@
 export const listaEstados = [
-  "Amazonas", "Anzoátegui", "Apure", "Aragua", "Barinas", "Bolívar", "Carabobo", 
-  "Cojedes", "Delta Amacuro", "Distrito Capital", "Falcón", "Guárico", "Lara", 
-  "Mérida", "Miranda", "Monagas", "Nueva Esparta", "Portuguesa", "Sucre", 
-  "Táchira", "Trujillo", "La Guaira", "Yaracuy", "Zulia"
+  "Distrito Capital",
+  "Miranda",
+  "La Guaira",
+  "Aragua",
+  "Carabobo",
+  "Yaracuy",
+  "Falcón",
+  "Lara",
+  "Zulia",
+  "Mérida",
+  "Táchira",
+  "Trujillo",
+  "Apure",
+  "Barinas",
+  "Cojedes",
+  "Guárico",
+  "Portuguesa",
+  "Anzoátegui",
+  "Monagas",
+  "Sucre",
+  "Amazonas",
+  "Bolívar",
+  "Delta Amacuro",
+  "Guayana Esequiba",
+  "Nueva Esparta"
 ];
 
 export let activities = {};
